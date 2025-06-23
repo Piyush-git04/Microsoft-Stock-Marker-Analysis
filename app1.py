@@ -6,22 +6,23 @@ import pandas as pd
 
 # Importing the data-'df' for last 'close' price and last 'date'
 def load_data():
-    df= pd.read_csv(r'C:\Users\DELL\Desktop\MSFT\MSFT_stock.csv', parse_dates= ['Date'], dayfirst= False) 
+    df= pd.read_csv(r'\MSFT\df.csv', parse_dates= ['Date'], dayfirst= False) 
     df.set_index('Date', inplace= True)
     return df
 
 df= load_data()
 st.write('Index dtype:', df.index.dtype)
 
+
 # Load ARIMA model
 def load_model():
-    return joblib.load(r'C:\Users\DELL\Desktop\MSFT\arima_final_model.pkl')
+    return joblib.load(r'\MSFT\arima_final_model.pkl')
 
 model= load_model()
 
 
 # Input: Number of days to forecast
-n_steps= st.number_input("How many future business days to forecast from 13-06-25?:", min_value= 1, max_value= 365, value= 30)
+n_steps= st.number_input("How many future business days to forecast 'Microsoft Stock price' from 18-06-25?:", min_value= 1, max_value= 365, value= 30)
 
 # Forecast when butto is clicked
 if st.button('Forecast'):
@@ -39,31 +40,32 @@ if st.button('Forecast'):
         'Date': future_date,
         'Forecast_Close': forecast_close.values}).set_index('Date')
 
+
     # Format date format (no time)
     forecast_df_display= forecast_df.copy()
-    forecast_df_display.index= forecast_df_display.index.strftime('%Y-%m-%d')
+    forecast_df_display.index= forecast_df_display.index.strftime('%d-%m-%Y')
     
     # Show tables
     st.subheader('Forecasted Close Prices')
     st.dataframe(forecast_df_display)
 
-    # st.line_chart(forecast_df)
+    st.line_chart(forecast_df)
 
     # 6. Plot
     # ensure datetime index for plotting
-    # df.index= pd.to_datetime(df.index, dayfirst= True).normalize()
-    # forecast_df.index= pd.to_datetime(forecast_df.index).normalize()
+    df.index= pd.to_datetime(df.index, dayfirst= True).normalize()
+    forecast_df.index= pd.to_datetime(forecast_df.index).normalize()
 
-    # plt.figure(figsize=(12, 6))
-    # plt.plot(df.index, df['Close'].values, label='Historical Close')
-    # plt.plot(forecast_df.index, forecast_df['Forecast_Close'].values, label='Forecast (Next Days)', linestyle='--', color= 'red')
+    plt.figure(figsize=(12, 6))
+    plt.plot(df.index, df['Close'].values, label='Historical Close')
+    plt.plot(forecast_df.index, forecast_df['Forecast_Close'].values, label='Forecast (Next Days)', linestyle='--', color= 'red')
 
-    # plt.xlabel('Date')
-    # plt.ylabel('Close Price')
-    # plt.title('ARIMA Forecast: Next Business Days')
-    # plt.legend()
-    # plt.tight_layout()
-    # st.pyplot(plt.gcf())
+    plt.xlabel('Date')
+    plt.ylabel('Close Price')
+    plt.title('ARIMA Forecast: Next Business Days')
+    plt.legend()
+    plt.tight_layout()
+    st.pyplot(plt.gcf())
 
     # Optional: Save forecast as CSV
     csv= forecast_df.to_csv().encode('utf-8')
